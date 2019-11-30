@@ -33,9 +33,11 @@ async function run() {
     }
     const { size: sizeInBytes } = fs.statSync(mainFile)
 
-    console.log('size branch', sizeInBytes)
+    console.log('LOG: size branch', sizeInBytes)
 
     await exec.exec('git checkout master')
+
+    await exec.exec('yarn')
 
     await exec.exec('yarn build', null, {
       ignoreReturnCode: true,
@@ -47,11 +49,11 @@ async function run() {
       })
     })
 
-    const { size: sizeInBytesMaster } = fs.statSync(mainFile)
+    const { size: sizeInBytesMaster } = fs.statSync(mainFileMaster)
 
-    console.log('size branch master', sizeInBytesMaster)
+    console.log('LOG: size branch master', sizeInBytesMaster)
 
-    console.log('difference', sizeInBytes - sizeInBytesMaster)
+    console.log('LOG: difference', sizeInBytes - sizeInBytesMaster)
 
     core.setFailed('error to rerun')
   } catch (error) {
