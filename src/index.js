@@ -21,12 +21,14 @@ async function run() {
     file = configFile.file
     maxSize = configFile.maxSize
   } catch (error) {
+    core.setFailed(error.message)
     throw Error('Config file not found')
     try {
       const [configFile2] = await loadJsonFile(`./${configFile}`)
       file = configFile.file
       maxSize = configFile.maxSize
     } catch (error) {
+      core.setFailed(error.message)
       throw Error('Config file not found')
     }
   }
