@@ -4,15 +4,25 @@ const path = require('path')
 const glob = require('glob')
 const fs = require('fs')
 
-const MAIN_FILE_PATH = './build/static/js/main.*.chunk.js'
-
 async function run() {
   await exec.exec('yarn build', null, {
     ignoreReturnCode: true,
   })
+  const event = core.getInput('event')
+  const commitHash = core.getInput('sha')
+  const branch = core.getInput('branch')
+  const configFile = core.getInput('configFile') || 'bundlewatcher.json'
+
+  const [{ file, maxSize }] = require(configFile)
+
+  console.log('main file', file)
+  console.log('event', event)
+  console.log('commitHash', commitHash)
+  console.log('branch', branch)
+
   try {
     const [mainFile] = await new Promise(resolve => {
-      glob(MAIN_FILE_PATH, null, (err, files) => {
+      glob(file, null, (err, files) => {
         resolve(files)
       })
     })
