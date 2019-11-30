@@ -9,9 +9,13 @@ async function run() {
   await exec.exec('yarn build', null, {
     ignoreReturnCode: true,
   })
-  const { size: sizeInBytes } = fs.statSync(MAIN_FILE_PATH)
-  const sizeInKiloBytes = sizeInBytes / 1000
-  console.log(`Main bundle size: ${sizeInKiloBytes}KB`)
+  try {
+    const { size: sizeInBytes } = fs.statSync(MAIN_FILE_PATH)
+    const sizeInKiloBytes = sizeInBytes / 1000
+    console.log(`Main bundle size: ${sizeInKiloBytes}KB`)
+  } catch (error) {
+    core.setFailed(error.message)
+  }
 }
 
 run()
