@@ -9,6 +9,9 @@ async function run() {
   await exec.exec('yarn build', null, {
     ignoreReturnCode: true,
   })
+  console.log('GITHUB_SHA', process.env.GITHUB_SHA)
+  console.log('GITHUB_REF', process.env.GITHUB_REF)
+  console.log('GITHUB_EVENT_NAME', process.env.GITHUB_EVENT_NAME)
   const event = core.getInput('event')
   const commitHash = core.getInput('sha')
   const branch = core.getInput('branch')
@@ -19,7 +22,7 @@ async function run() {
   console.log('branch', branch)
   console.log('process.cwd()', process.cwd())
 
-  const [{ file, maxSize }] = loadJsonFile(`${process.cwd()}/${configFile}.json`)
+  const [{ file, maxSize }] = await loadJsonFile(`${process.cwd()}/${configFile}.json`)
 
   try {
     const [mainFile] = await new Promise(resolve => {
