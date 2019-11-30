@@ -9,7 +9,7 @@ async function run() {
   await exec.exec('yarn build', null, {
     ignoreReturnCode: true,
   })
-  const { size: sizeInBytes } = await fs.stat(MAIN_FILE_PATH)
+  const { size: sizeInBytes } = fs.statSync(MAIN_FILE_PATH)
   const sizeInKiloBytes = sizeInBytes / 1000
   console.log(`Main bundle size: ${sizeInKiloBytes}KB`)
 }
