@@ -1,0 +1,16 @@
+{
+  "name": "bundlesize-watcher",
+  "version": "0.1.0",
+  "description": "Watch your bundle size across commits and pull requests",
+  "main": "index.js",
+  "scripts": {
+    "build": "npx @zeit/ncc build ./src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@actions/core": "^1.2.0",
+    "@actions/exec": "^1.0.1"
+  }
+}

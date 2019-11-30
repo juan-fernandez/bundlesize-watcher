@@ -1,0 +1,6 @@
+name: 'Bundlesize Watcher'
+author: 'Juan Fernandez'
+description: 'Watch your bundle size across commits and pull requests'
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
