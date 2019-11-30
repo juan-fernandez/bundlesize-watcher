@@ -9,20 +9,20 @@ async function run() {
   await exec.exec('yarn build', null, {
     ignoreReturnCode: true,
   })
-  console.log('GITHUB_SHA', process.env.GITHUB_SHA)
-  console.log('GITHUB_REF', process.env.GITHUB_REF)
-  console.log('GITHUB_EVENT_NAME', process.env.GITHUB_EVENT_NAME)
-  const event = core.getInput('event')
-  const commitHash = core.getInput('sha')
-  const branch = core.getInput('branch')
+  const { GITHUB_SHA, GITHUB_REF, GITHUB_EVENT_NAME } = process.env
   const configFile = core.getInput('configFile') || 'bundlewatcher.json'
-  console.log('configFile', configFile)
-  console.log('event', event)
-  console.log('commitHash', commitHash)
-  console.log('branch', branch)
-  console.log('process.cwd()', process.cwd())
 
-  const [{ file, maxSize }] = await loadJsonFile(`${process.cwd()}/${configFile}.json`)
+  let file, maxSize
+  try {
+    const [configFile] = await loadJsonFile(`${process.cwd()}/${configFile}`)
+    file = configFile.file
+    maxSize = configFile.maxSize
+  } catch (error) {
+    throw Error('Config file not found')
+  }
+
+  console.log('file', file)
+  console.log('maxSize', maxSize)
 
   try {
     const [mainFile] = await new Promise(resolve => {
