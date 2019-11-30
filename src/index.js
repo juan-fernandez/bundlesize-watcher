@@ -3,6 +3,7 @@ const exec = require('@actions/exec')
 const path = require('path')
 const glob = require('glob')
 const fs = require('fs')
+const loadJsonFile = require('load-json-file')
 
 async function run() {
   await exec.exec('yarn build', null, {
@@ -12,13 +13,13 @@ async function run() {
   const commitHash = core.getInput('sha')
   const branch = core.getInput('branch')
   const configFile = core.getInput('configFile') || 'bundlewatcher.json'
-
-  const [{ file, maxSize }] = require(`./${configFile}`)
-
-  console.log('main file', file)
+  console.log('configFile', configFile)
   console.log('event', event)
   console.log('commitHash', commitHash)
   console.log('branch', branch)
+  console.log('process.cwd()', process.cwd())
+
+  const [{ file, maxSize }] = loadJsonFile(`${process.cwd()}/${configFile}.json`)
 
   try {
     const [mainFile] = await new Promise(resolve => {
