@@ -13,7 +13,7 @@ async function run() {
   const branch = core.getInput('branch')
   const configFile = core.getInput('configFile') || 'bundlewatcher.json'
 
-  const [{ file, maxSize }] = require(configFile)
+  const [{ file, maxSize }] = require(`./${configFile}`)
 
   console.log('main file', file)
   console.log('event', event)
