@@ -9,9 +9,12 @@ async function run() {
   await exec.exec('yarn build', null, {
     ignoreReturnCode: true,
   })
-  const { GITHUB_SHA, GITHUB_REF, GITHUB_EVENT_NAME } = process.env
+  const { GITHUB_SHA, GITHUB_REF, GITHUB_EVENT_NAME, HOME, HOMEPATH, USERPROFILE } = process.env
   const configFile = core.getInput('configFile') || 'bundlewatcher.json'
 
+  console.log('home', HOME)
+  console.log('homePATH', HOMEPATH)
+  console.log('USERPROFILE', USERPROFILE)
   let file, maxSize
   try {
     const [configFile] = await loadJsonFile(`${process.cwd()}/${configFile}`)
@@ -19,6 +22,13 @@ async function run() {
     maxSize = configFile.maxSize
   } catch (error) {
     throw Error('Config file not found')
+    try {
+      const [configFile2] = await loadJsonFile(`./${configFile}`)
+      file = configFile.file
+      maxSize = configFile.maxSize
+    } catch (error) {
+      throw Error('Config file not found')
+    }
   }
 
   console.log('file', file)
