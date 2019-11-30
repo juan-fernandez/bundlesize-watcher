@@ -4,37 +4,44 @@ const path = require('path')
 const glob = require('glob')
 const fs = require('fs')
 const loadJsonFile = require('load-json-file')
+const firebase = require('firebase')
+require('firebase/firestore')
+
+function initializeFirebase() {
+  const firebaseApiKey = core.getInput('firebase_apikey')
+  const firebaseConfig = {
+    apiKey: firebaseApiKey,
+    authDomain: 'bundlewatcher-github.firebaseapp.com',
+    databaseURL: 'https://bundlewatcher-github.firebaseio.com',
+    projectId: 'bundlewatcher-github',
+    storageBucket: 'bundlewatcher-github.appspot.com',
+    messagingSenderId: '78156893526',
+    appId: '1:78156893526:web:d487cfe28faffa311e5af7',
+    measurementId: 'G-LTBCB0ZSPB',
+  }
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig)
+  firebase.analytics()
+  return firebase.database()
+}
 
 async function run() {
+  const firebaseDatabase = initializeFirebase()
   await exec.exec('yarn build', null, {
     ignoreReturnCode: true,
   })
-  const { GITHUB_SHA, GITHUB_REF, GITHUB_EVENT_NAME, HOME, HOMEPATH, USERPROFILE } = process.env
+  const { GITHUB_SHA, GITHUB_REF, GITHUB_EVENT_NAME } = process.env
   const configFile = core.getInput('configFile') || 'bundlewatcher.json'
 
-  console.log('home', HOME)
-  console.log('homePATH', HOMEPATH)
-  console.log('USERPROFILE', USERPROFILE)
-  let file, maxSize
+  let fileSetting, maxSizeSetting
   try {
-    const [readConfigFile] = await loadJsonFile(`${process.cwd()}/${configFile}`)
-    file = readConfigFile.file
-    maxSize = readConfigFile.maxSize
+    const [readConfigFile] = await loadJsonFile(`./${configFile}`)
+    fileSetting = readConfigFile.file
+    maxSizeSetting = readConfigFile.maxSize
   } catch (error) {
     core.setFailed(error.message)
     throw Error('Config file not found')
-    try {
-      const [readConfigFile2] = await loadJsonFile(`./${configFile}`)
-      file = readConfigFile2.file
-      maxSize = readConfigFile2.maxSize
-    } catch (error) {
-      core.setFailed(error.message)
-      throw Error('Config file not found')
-    }
   }
-
-  console.log('file', file)
-  console.log('maxSize', maxSize)
 
   try {
     const [mainFile] = await new Promise(resolve => {
@@ -47,7 +54,11 @@ async function run() {
     }
     const { size: sizeInBytes } = fs.statSync(mainFile)
     const sizeInKiloBytes = sizeInBytes / 1000
-    console.log(`Main bundle size: ${sizeInKiloBytes}KB`)
+    database.ref(`bundlesize/${GITHUB_SHA}`).set({
+      size: sizeInBytes,
+    })
+
+    core.setFailed('error to rerun')
   } catch (error) {
     core.setFailed(error.message)
   }
