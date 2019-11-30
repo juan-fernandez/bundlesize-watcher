@@ -17,16 +17,16 @@ async function run() {
   console.log('USERPROFILE', USERPROFILE)
   let file, maxSize
   try {
-    const [configFile] = await loadJsonFile(`${process.cwd()}/${configFile}`)
-    file = configFile.file
-    maxSize = configFile.maxSize
+    const [readConfigFile] = await loadJsonFile(`${process.cwd()}/${configFile}`)
+    file = readConfigFile.file
+    maxSize = readConfigFile.maxSize
   } catch (error) {
     core.setFailed(error.message)
     throw Error('Config file not found')
     try {
-      const [configFile2] = await loadJsonFile(`./${configFile}`)
-      file = configFile.file
-      maxSize = configFile.maxSize
+      const [readConfigFile2] = await loadJsonFile(`./${configFile}`)
+      file = readConfigFile2.file
+      maxSize = readConfigFile2.maxSize
     } catch (error) {
       core.setFailed(error.message)
       throw Error('Config file not found')
