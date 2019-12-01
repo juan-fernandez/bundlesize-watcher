@@ -31,11 +31,13 @@ async function getFilesFromWildCard(wildCardFile) {
 }
 
 async function run() {
-  const { GITHUB_SHA, GITHUB_REF, GITHUB_EVENT_NAME } = process.env
-  const configFile = core.getInput('configFile') || './bundlewatcher.json'
-
   // Build branch
   await exec.exec('yarn build')
+
+  // We can also get GITHUB_SHA and GITHUB_EVENT_NAME
+  const { GITHUB_REF } = process.env
+  const configFile = core.getInput('configFilePath') || './bundlewatcher.json'
+  console.log('Config file', configFile)
 
   // Get file wildcards from settings
   const { file: inputFileSetting, maxSize: inputMaxSizeSetting } = await getSettings(configFile)
