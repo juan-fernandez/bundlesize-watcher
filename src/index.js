@@ -1,64 +1,73 @@
 const core = require('@actions/core')
 const exec = require('@actions/exec')
-const path = require('path')
 const glob = require('glob')
 const fs = require('fs')
 const loadJsonFile = require('load-json-file')
 
-async function run() {
-  await exec.exec('yarn build', null, {
-    ignoreReturnCode: true,
-  })
-  const { GITHUB_SHA, GITHUB_REF, GITHUB_EVENT_NAME } = process.env
-  const configFile = core.getInput('configFile') || 'bundlewatcher.json'
-
-  let inputFileSetting, inputMaxSizeSetting
+// TODO: for the moment it just reads one (config file's json is an array)
+async function getSettings(configFile) {
   try {
-    const [readConfigFile] = await loadJsonFile(`./${configFile}`)
-    inputFileSetting = readConfigFile.file
-    inputMaxSizeSetting = readConfigFile.maxSize
+    const [configFile] = await loadJsonFile(configFile)
+    return configFile
   } catch (error) {
     core.setFailed(error.message)
     throw Error('Config file not found')
   }
+}
 
+// Read files in the format "./build/static/js/main.*.chunk.js"
+// TODO: for the moment it just reads one
+async function getFilesFromWildCard(wildCardFile) {
   try {
     const [mainFile] = await new Promise(resolve => {
-      glob(inputFileSetting, null, (err, files) => {
+      glob(wildCardFile, null, (err, files) => {
         resolve(files)
       })
     })
-    if (!mainFile) {
-      throw Error('Main file not found')
-    }
-    const { size: sizeInBytes } = fs.statSync(mainFile)
-
-    console.log('LOG: size branch', sizeInBytes)
-
-    await exec.exec('git checkout master')
-
-    await exec.exec('yarn')
-
-    await exec.exec('yarn build', null, {
-      ignoreReturnCode: true,
-    })
-
-    const [mainFileMaster] = await new Promise(resolve => {
-      glob(inputFileSetting, null, (err, files) => {
-        resolve(files)
-      })
-    })
-
-    const { size: sizeInBytesMaster } = fs.statSync(mainFileMaster)
-
-    console.log('LOG: size branch master', sizeInBytesMaster)
-
-    console.log('LOG: difference', sizeInBytes - sizeInBytesMaster)
-
-    core.setFailed('error to rerun')
+    return mainFile
   } catch (error) {
-    core.setFailed(error.message)
+    core.setFailed(`"${wildCardFile}" not found`)
   }
+}
+
+async function run() {
+  const { GITHUB_SHA, GITHUB_REF, GITHUB_EVENT_NAME } = process.env
+  const configFile = core.getInput('configFile') || './bundlewatcher.json'
+
+  // Build branch
+  await exec.exec('yarn build')
+
+  // Get file wildcards from settings
+  const { file: inputFileSetting, maxSize: inputMaxSizeSetting } = await getSettings(configFile)
+
+  // Get actual files
+  const mainFile = await getFilesFromWildCard(inputFileSetting)
+
+  // Get file sizes
+  const { size: sizeInBytes } = fs.statSync(mainFile)
+
+  console.log(`Main file size in branch ${GITHUB_REF}: ${sizeInBytes} B`)
+
+  // Compare with master
+  await exec.exec('git checkout master')
+
+  // Reinstall dependencies
+  await exec.exec('yarn')
+
+  // Rebuild
+  await exec.exec('yarn build')
+
+  // Get actual files
+  const mainFileMaster = await getFilesFromWildCard(inputFileSetting)
+
+  // Get file sizes
+  const { size: sizeInBytesMaster } = fs.statSync(mainFileMaster)
+
+  console.log(`Main file size in branch master: ${sizeInBytesMaster} B`)
+
+  console.log(`Difference from ${GITHUB_REF} to master: ${sizeInBytes - sizeInBytesMaster} B`)
+
+  core.setFailed('error to allow rerun')
 }
 
 run()

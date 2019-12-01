@@ -1,6 +1,11 @@
 name: 'Bundlesize Watcher'
 author: 'Juan Fernandez'
 description: 'Watch your bundle size across commits and pull requests'
+inputs:
+  configFilePath:
+    description: File path from your projects root to your configuration file
+    required: false
+    default: ./bundlewatcher.json
 runs:
   using: 'node12'
   main: 'dist/index.js'
