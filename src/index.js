@@ -1,3 +1,4 @@
+const github = require('@actions/github')
 const core = require('@actions/core')
 const exec = require('@actions/exec')
 const glob = require('glob')
@@ -71,4 +72,18 @@ async function run() {
   core.setFailed('error to allow rerun')
 }
 
-run()
+// run()
+
+function runOkto() {
+  const { GITHUB_REPOSITORY, GITHUB_SHA } = process.env
+  const myToken = core.getInput('myToken')
+  const octokit = new github.GitHub(myToken)
+  octokit.checks.create({
+    owner: 'juan-fernandez',
+    repo: GITHUB_REPOSITORY,
+    name: 'check',
+    head_sha: GITHUB_SHA,
+  })
+}
+
+runOkto()
