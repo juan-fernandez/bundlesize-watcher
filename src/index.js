@@ -5,9 +5,9 @@ const fs = require('fs')
 const loadJsonFile = require('load-json-file')
 
 // TODO: for the moment it just reads one (config file's json is an array)
-async function getSettings(configFile) {
+async function getSettings(configFilePath) {
   try {
-    const [configFile] = await loadJsonFile(configFile)
+    const [configFile] = await loadJsonFile(configFilePath)
     return configFile
   } catch (error) {
     core.setFailed(error.message)
@@ -36,11 +36,10 @@ async function run() {
 
   // We can also get GITHUB_SHA and GITHUB_EVENT_NAME
   const { GITHUB_REF } = process.env
-  const configFile = core.getInput('configFilePath') || './bundlewatcher.json'
-  console.log('Config file', configFile)
+  const configFilePath = core.getInput('configFilePath') || './bundlewatcher.json'
 
   // Get file wildcards from settings
-  const { file: inputFileSetting, maxSize: inputMaxSizeSetting } = await getSettings(configFile)
+  const { file: inputFileSetting, maxSize: inputMaxSizeSetting } = await getSettings(configFilePath)
 
   // Get actual files
   const mainFile = await getFilesFromWildCard(inputFileSetting)
